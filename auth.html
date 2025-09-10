@@ -7,14 +7,6 @@
     <meta name="description" content="Secure email service for Samos Global Technologies Inc. Create your @samos.com account today.">
     <meta name="author" content="Samos Global Technologies Inc.">
     
-    <!-- Open Graph -->
-    <meta property="og:title" content="Samos Mail - Professional Email Service">
-    <meta property="og:description" content="Secure, professional email service for Samos Global Technologies">
-    <meta property="og:type" content="website">
-    
-    <!-- Favicon -->
-    <link rel="icon" type="image/x-icon" href="/favicon.ico">
-    
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
@@ -422,7 +414,7 @@
                 <div class="form-group">
                     <div class="input-group">
                         <input type="email" class="input-field" id="signup-email" required>
-                        <label class="floating-label" for="signup-email">Email Address (will create @samos.com)</label>
+                        <label class="floating-label" for="signup-email">Email Address</label>
                     </div>
                 </div>
                 
@@ -444,7 +436,7 @@
                 <div id="signup-success" class="success-message"></div>
                 
                 <div class="form-group">
-                    <button type="submit" class="btn-primary">Create Your @samos.com Account</button>
+                    <button type="submit" class="btn-primary">Create Your Account</button>
                 </div>
             </form>
         </div>
@@ -453,8 +445,9 @@
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script>
         // Initialize Supabase
-        const SUPABASE_URL = 'https://wwozfloysrxnayaxmtgw.supabase.co';
-        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3b3pmbG95c3J4bmF5YXhtdGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0ODE1NDEsImV4cCI6MjA3MzA1NzU0MX0._TwAouJIbB_XY3i0jmQkP1DJDoplGzVdluWMa1TmG5M';
+        // Replace these with your actual Supabase project URL and API key
+        const SUPABASE_URL = 'https://your-project.supabase.co';
+        const SUPABASE_ANON_KEY = 'your-anon-key';
         
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
         
@@ -465,6 +458,8 @@
         const tabButtons = document.querySelectorAll('.tab-button');
         const signinForm = document.getElementById('signin-form');
         const signupForm = document.getElementById('signup-form');
+        const signupError = document.getElementById('signup-error');
+        const signupSuccess = document.getElementById('signup-success');
         
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -520,7 +515,7 @@
         const profilePreview = document.getElementById('profile-preview');
         const profileIcon = document.querySelector('.profile-image i');
         
-        profileInput.addEventListener('change', async (e) => {
+        profileInput.addEventListener('change', (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
@@ -577,23 +572,22 @@
             const password = document.getElementById('signup-password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
             
-            const errorElement = document.getElementById('signup-error');
-            const successElement = document.getElementById('signup-success');
-            
             // Clear previous messages
-            errorElement.style.display = 'none';
-            successElement.style.display = 'none';
+            signupError.style.display = 'none';
+            signupSuccess.style.display = 'none';
+            signupError.textContent = '';
+            signupSuccess.textContent = '';
             
             // Validate inputs
             if (!fullname || !birthday || !phone || !email || !password || !confirmPassword) {
-                errorElement.textContent = 'Please fill in all fields';
-                errorElement.style.display = 'block';
+                signupError.textContent = 'Please fill in all fields';
+                signupError.style.display = 'block';
                 return;
             }
             
             if (password !== confirmPassword) {
-                errorElement.textContent = 'Passwords do not match!';
-                errorElement.style.display = 'block';
+                signupError.textContent = 'Passwords do not match!';
+                signupError.style.display = 'block';
                 return;
             }
             
@@ -608,15 +602,16 @@
                             birthday: birthday,
                             phone: phone,
                             avatar_url: profilePreview.src || null
-                        }
+                        },
+                        emailRedirectTo: window.location.origin + '/auth.html'
                     }
                 });
                 
                 if (error) throw error;
                 
                 // Show success message
-                successElement.textContent = 'Account created successfully! Please check your email to verify your account.';
-                successElement.style.display = 'block';
+                signupSuccess.textContent = 'Account created successfully! Please check your email to verify your account.';
+                signupSuccess.style.display = 'block';
                 
                 // Clear form
                 signupForm.reset();
@@ -624,8 +619,8 @@
                 profileIcon.style.display = 'block';
                 
             } catch (error) {
-                errorElement.textContent = error.message;
-                errorElement.style.display = 'block';
+                signupError.textContent = error.message;
+                signupError.style.display = 'block';
             }
         });
         
