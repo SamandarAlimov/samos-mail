@@ -1,0 +1,674 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samos Mail - Sign In</title>
+    <meta name="description" content="Secure email service for Samos Global Technologies Inc. Create your @samos.com account today.">
+    <meta name="author" content="Samos Global Technologies Inc.">
+    
+    <!-- Open Graph -->
+    <meta property="og:title" content="Samos Mail - Professional Email Service">
+    <meta property="og:description" content="Secure, professional email service for Samos Global Technologies">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.294.0/lucide.min.css" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            /* Professional Email Service Colors */
+            --background: 250 250% 99%;
+            --foreground: 213 27% 12%;
+            --card: 0 0% 100%;
+            --card-foreground: 213 27% 12%;
+            
+            /* Professional Blue Brand Colors */
+            --primary: 217 91% 52%;
+            --primary-foreground: 0 0% 100%;
+            --primary-hover: 217 91% 48%;
+            --primary-light: 217 91% 96%;
+            
+            --secondary: 220 14% 96%;
+            --secondary-foreground: 213 27% 12%;
+            
+            --muted: 220 13% 95%;
+            --muted-foreground: 220 9% 46%;
+            
+            --border: 220 13% 91%;
+            --input: 0 0% 100%;
+            --input-border: 220 13% 85%;
+            --ring: 217 91% 52%;
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, hsl(217 91% 52%), hsl(217 91% 42%));
+            --gradient-bg: linear-gradient(135deg, hsl(217 91% 98%), hsl(220 20% 99%));
+            
+            /* Shadows */
+            --shadow-card: 0 4px 6px hsl(220 13% 85% / 0.1);
+            --shadow-elevated: 0 10px 25px hsl(220 13% 85% / 0.15);
+            --shadow-primary: 0 4px 16px hsl(217 91% 52% / 0.2);
+            
+            /* Typography */
+            --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            
+            /* Animations */
+            --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            
+            --radius: 0.75rem;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-display);
+            background: var(--gradient-bg);
+            color: hsl(var(--foreground));
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+        }
+        
+        .auth-container {
+            width: 100%;
+            max-width: 28rem;
+            background: hsl(var(--card));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-elevated);
+            overflow: hidden;
+        }
+        
+        .auth-header {
+            background: var(--gradient-primary);
+            color: hsl(var(--primary-foreground));
+            padding: 2rem;
+            text-align: center;
+        }
+        
+        .auth-header h1 {
+            font-size: 1.875rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .auth-header p {
+            opacity: 0.9;
+            font-size: 0.875rem;
+        }
+        
+        .auth-form {
+            padding: 2rem;
+        }
+        
+        .form-tabs {
+            display: flex;
+            background: hsl(var(--muted));
+            border-radius: calc(var(--radius) - 0.125rem);
+            padding: 0.25rem;
+            margin-bottom: 2rem;
+        }
+        
+        .tab-button {
+            flex: 1;
+            background: transparent;
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: calc(var(--radius) - 0.25rem);
+            font-weight: 500;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            color: hsl(var(--muted-foreground));
+        }
+        
+        .tab-button.active {
+            background: hsl(var(--card));
+            color: hsl(var(--primary));
+            box-shadow: 0 1px 3px hsl(220 13% 85% / 0.3);
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .profile-upload {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 2rem;
+        }
+        
+        .profile-image {
+            width: 5rem;
+            height: 5rem;
+            border-radius: 50%;
+            background: hsl(var(--muted));
+            border: 3px solid hsl(var(--border));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .profile-image:hover {
+            border-color: hsl(var(--primary));
+            transform: scale(1.05);
+        }
+        
+        .profile-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        .profile-image i {
+            font-size: 1.5rem;
+            color: hsl(var(--muted-foreground));
+        }
+        
+        .profile-image input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+        
+        .input-group {
+            position: relative;
+        }
+        
+        .input-field {
+            width: 100%;
+            padding: 0.875rem 1rem;
+            border: 2px solid hsl(var(--input-border));
+            border-radius: calc(var(--radius) - 0.125rem);
+            background: hsl(var(--input));
+            font-size: 0.875rem;
+            transition: var(--transition-smooth);
+            outline: none;
+        }
+        
+        .input-field:focus {
+            border-color: hsl(var(--primary));
+            box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+        }
+        
+        .input-field::placeholder {
+            color: hsl(var(--muted-foreground));
+        }
+        
+        .floating-label {
+            position: absolute;
+            left: 1rem;
+            top: 0.875rem;
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            pointer-events: none;
+            transition: var(--transition-smooth);
+            background: hsl(var(--input));
+            padding: 0 0.25rem;
+        }
+        
+        .input-field:focus + .floating-label,
+        .floating-label.active {
+            top: -0.5rem;
+            left: 0.75rem;
+            font-size: 0.75rem;
+            color: hsl(var(--primary));
+        }
+        
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        
+        .btn-primary {
+            width: 100%;
+            background: var(--gradient-primary);
+            color: hsl(var(--primary-foreground));
+            border: none;
+            padding: 0.875rem 1rem;
+            border-radius: calc(var(--radius) - 0.125rem);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            box-shadow: var(--shadow-primary);
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px hsl(217 91% 52% / 0.3);
+        }
+        
+        .btn-primary:active {
+            transform: translateY(0);
+        }
+        
+        .forgot-link {
+            color: hsl(var(--primary));
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            transition: var(--transition-smooth);
+        }
+        
+        .forgot-link:hover {
+            text-decoration: underline;
+        }
+        
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 1.5rem 0;
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+        }
+        
+        .divider::before,
+        .divider::after {
+            content: '';
+            flex: 1;
+            height: 1px;
+            background: hsl(var(--border));
+        }
+        
+        .divider span {
+            padding: 0 1rem;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+        .error-message {
+            color: #e53e3e;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            text-align: center;
+            display: none;
+        }
+        
+        .success-message {
+            color: #38a169;
+            font-size: 0.875rem;
+            margin-top: 0.5rem;
+            text-align: center;
+            display: none;
+        }
+        
+        @media (max-width: 640px) {
+            .auth-container {
+                margin: 0.5rem;
+            }
+            
+            .auth-header,
+            .auth-form {
+                padding: 1.5rem;
+            }
+            
+            .form-row {
+                grid-template-columns: 1fr;
+            }
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        .slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-container slide-in">
+        <div class="auth-header">
+            <h1>Samos Mail</h1>
+            <p>Professional email service for Samos Global Technologies</p>
+        </div>
+        
+        <div class="auth-form">
+            <div class="form-tabs">
+                <button class="tab-button active" data-tab="signin">Sign In</button>
+                <button class="tab-button" data-tab="signup">Sign Up</button>
+            </div>
+            
+            <!-- Sign In Form -->
+            <form id="signin-form" class="auth-form-content">
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="email" class="input-field" id="signin-email" required>
+                        <label class="floating-label" for="signin-email">Email Address</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="password" class="input-field" id="signin-password" required>
+                        <label class="floating-label" for="signin-password">Password</label>
+                    </div>
+                </div>
+                
+                <div id="signin-error" class="error-message"></div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn-primary">Sign In to Your Account</button>
+                </div>
+                
+                <div class="form-group" style="text-align: center;">
+                    <a href="#" class="forgot-link" id="forgot-password">Forgot your password?</a>
+                </div>
+            </form>
+            
+            <!-- Sign Up Form -->
+            <form id="signup-form" class="auth-form-content hidden">
+                <div class="profile-upload">
+                    <div class="profile-image">
+                        <i data-lucide="user-plus"></i>
+                        <img id="profile-preview" style="display: none;" alt="Profile">
+                        <input type="file" id="profile-input" accept="image/*">
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="text" class="input-field" id="fullname" required>
+                        <label class="floating-label" for="fullname">Full Name</label>
+                    </div>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="date" class="input-field" id="birthday" required>
+                            <label class="floating-label" for="birthday">Birthday</label>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <div class="input-group">
+                            <input type="tel" class="input-field" id="phone" required>
+                            <label class="floating-label" for="phone">Phone Number</label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="email" class="input-field" id="signup-email" required>
+                        <label class="floating-label" for="signup-email">Email Address (will create @samos.com)</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="password" class="input-field" id="signup-password" required>
+                        <label class="floating-label" for="signup-password">Password</label>
+                    </div>
+                </div>
+                
+                <div class="form-group">
+                    <div class="input-group">
+                        <input type="password" class="input-field" id="confirm-password" required>
+                        <label class="floating-label" for="confirm-password">Confirm Password</label>
+                    </div>
+                </div>
+                
+                <div id="signup-error" class="error-message"></div>
+                <div id="signup-success" class="success-message"></div>
+                
+                <div class="form-group">
+                    <button type="submit" class="btn-primary">Create Your @samos.com Account</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://wwozfloysrxnayaxmtgw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3b3pmbG95c3J4bmF5YXhtdGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0ODE1NDEsImV4cCI6MjA3MzA1NzU0MX0._TwAouJIbB_XY3i0jmQkP1DJDoplGzVdluWMa1TmG5M';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Form switching
+        const tabButtons = document.querySelectorAll('.tab-button');
+        const signinForm = document.getElementById('signin-form');
+        const signupForm = document.getElementById('signup-form');
+        
+        tabButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                const tabType = button.dataset.tab;
+                
+                // Update active tab
+                tabButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+                
+                // Show/hide forms
+                if (tabType === 'signin') {
+                    signinForm.classList.remove('hidden');
+                    signupForm.classList.add('hidden');
+                } else {
+                    signinForm.classList.add('hidden');
+                    signupForm.classList.remove('hidden');
+                }
+            });
+        });
+        
+        // Floating labels
+        const inputFields = document.querySelectorAll('.input-field');
+        inputFields.forEach(input => {
+            const label = input.nextElementSibling;
+            if (label && label.classList.contains('floating-label')) {
+                // Check if input has value on load
+                if (input.value) {
+                    label.classList.add('active');
+                }
+                
+                input.addEventListener('focus', () => {
+                    label.classList.add('active');
+                });
+                
+                input.addEventListener('blur', () => {
+                    if (!input.value) {
+                        label.classList.remove('active');
+                    }
+                });
+                
+                input.addEventListener('input', () => {
+                    if (input.value) {
+                        label.classList.add('active');
+                    } else {
+                        label.classList.remove('active');
+                    }
+                });
+            }
+        });
+        
+        // Profile image upload
+        const profileInput = document.getElementById('profile-input');
+        const profilePreview = document.getElementById('profile-preview');
+        const profileIcon = document.querySelector('.profile-image i');
+        
+        profileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    profilePreview.src = e.target.result;
+                    profilePreview.style.display = 'block';
+                    profileIcon.style.display = 'none';
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+        
+        // Form submissions
+        signinForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signin-email').value;
+            const password = document.getElementById('signin-password').value;
+            const errorElement = document.getElementById('signin-error');
+            
+            // Clear previous errors
+            errorElement.style.display = 'none';
+            errorElement.textContent = '';
+            
+            // Validate inputs
+            if (!email || !password) {
+                errorElement.textContent = 'Please fill in all fields';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            try {
+                // Sign in with Supabase
+                const { data, error } = await supabase.auth.signInWithPassword({
+                    email: email,
+                    password: password
+                });
+                
+                if (error) throw error;
+                
+                // Redirect to main email interface
+                window.location.href = 'mail.html';
+            } catch (error) {
+                errorElement.textContent = error.message;
+                errorElement.style.display = 'block';
+            }
+        });
+        
+        signupForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullname = document.getElementById('fullname').value;
+            const birthday = document.getElementById('birthday').value;
+            const phone = document.getElementById('phone').value;
+            const email = document.getElementById('signup-email').value;
+            const password = document.getElementById('signup-password').value;
+            const confirmPassword = document.getElementById('confirm-password').value;
+            
+            const errorElement = document.getElementById('signup-error');
+            const successElement = document.getElementById('signup-success');
+            
+            // Clear previous messages
+            errorElement.style.display = 'none';
+            successElement.style.display = 'none';
+            
+            // Validate inputs
+            if (!fullname || !birthday || !phone || !email || !password || !confirmPassword) {
+                errorElement.textContent = 'Please fill in all fields';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            if (password !== confirmPassword) {
+                errorElement.textContent = 'Passwords do not match!';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            try {
+                // Create user with Supabase
+                const { data, error } = await supabase.auth.signUp({
+                    email: email,
+                    password: password,
+                    options: {
+                        data: {
+                            full_name: fullname,
+                            birthday: birthday,
+                            phone: phone,
+                            avatar_url: profilePreview.src || null
+                        }
+                    }
+                });
+                
+                if (error) throw error;
+                
+                // Show success message
+                successElement.textContent = 'Account created successfully! Please check your email to verify your account.';
+                successElement.style.display = 'block';
+                
+                // Clear form
+                signupForm.reset();
+                profilePreview.style.display = 'none';
+                profileIcon.style.display = 'block';
+                
+            } catch (error) {
+                errorElement.textContent = error.message;
+                errorElement.style.display = 'block';
+            }
+        });
+        
+        // Forgot password
+        document.getElementById('forgot-password').addEventListener('click', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('signin-email').value;
+            const errorElement = document.getElementById('signin-error');
+            
+            if (!email) {
+                errorElement.textContent = 'Please enter your email address first';
+                errorElement.style.display = 'block';
+                return;
+            }
+            
+            try {
+                const { error } = await supabase.auth.resetPasswordForEmail(email, {
+                    redirectTo: window.location.origin + '/auth.html#reset-password',
+                });
+                
+                if (error) throw error;
+                
+                errorElement.textContent = 'Password reset instructions sent to your email';
+                errorElement.style.display = 'block';
+                errorElement.style.color = '#38a169';
+            } catch (error) {
+                errorElement.textContent = error.message;
+                errorElement.style.display = 'block';
+            }
+        });
+        
+        // Check if already authenticated
+        supabase.auth.getSession().then(({ data: { session } }) => {
+            if (session) {
+                window.location.href = 'mail.html';
+            }
+        });
+        
+        // Handle password reset
+        if (window.location.hash === '#reset-password') {
+            // Show reset password form (would need to be implemented)
+            alert('Password reset functionality would be implemented here');
+        }
+    </script>
+</body>
+</html>
