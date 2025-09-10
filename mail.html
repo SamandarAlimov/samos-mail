@@ -1,0 +1,1362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Samos Mail - Inbox</title>
+    <meta name="description" content="Professional email interface for Samos Global Technologies Inc.">
+    <meta name="author" content="Samos Global Technologies Inc.">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.294.0/lucide.min.css" rel="stylesheet">
+    
+    <!-- Supabase -->
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <style>
+        :root {
+            /* Professional Email Service Colors */
+            --background: 250 250% 99%;
+            --foreground: 213 27% 12%;
+            --card: 0 0% 100%;
+            --card-foreground: 213 27% 12%;
+            
+            /* Professional Blue Brand Colors */
+            --primary: 217 91% 52%;
+            --primary-foreground: 0 0% 100%;
+            --primary-hover: 217 91% 48%;
+            --primary-light: 217 91% 96%;
+            
+            --secondary: 220 14% 96%;
+            --secondary-foreground: 213 27% 12%;
+            
+            --muted: 220 13% 95%;
+            --muted-foreground: 220 9% 46%;
+            
+            --border: 220 13% 91%;
+            --input: 0 0% 100%;
+            --input-border: 220 13% 85%;
+            --ring: 217 91% 52%;
+            
+            /* Email Specific */
+            --sidebar-bg: 220 20% 97%;
+            --sidebar-border: 220 13% 88%;
+            --email-hover: 217 91% 98%;
+            --unread-dot: 217 91% 52%;
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, hsl(217 91% 52%), hsl(217 91% 42%));
+            --gradient-subtle: linear-gradient(180deg, hsl(220 20% 99%), hsl(220 20% 97%));
+            
+            /* Shadows */
+            --shadow-card: 0 1px 3px hsl(220 13% 85% / 0.3);
+            --shadow-elevated: 0 4px 12px hsl(220 13% 85% / 0.4);
+            --shadow-primary: 0 4px 16px hsl(217 91% 52% / 0.2);
+            
+            /* Typography */
+            --font-display: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            
+            /* Animations */
+            --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            
+            --radius: 0.75rem;
+        }
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: var(--font-display);
+            background: hsl(var(--background));
+            color: hsl(var(--foreground));
+            height: 100vh;
+            overflow: hidden;
+        }
+        
+        .email-container {
+            display: flex;
+            height: 100vh;
+        }
+        
+        /* Header */
+        .header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4rem;
+            background: hsl(var(--card));
+            border-bottom: 1px solid hsl(var(--border));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 50;
+        }
+        
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .logo {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: hsl(var(--primary));
+        }
+        
+        .search-bar {
+            display: flex;
+            align-items: center;
+            background: hsl(var(--muted));
+            border-radius: calc(var(--radius) - 0.25rem);
+            padding: 0.5rem 1rem;
+            min-width: 20rem;
+        }
+        
+        .search-bar input {
+            background: transparent;
+            border: none;
+            outline: none;
+            flex: 1;
+            font-size: 0.875rem;
+            color: hsl(var(--foreground));
+        }
+        
+        .search-bar input::placeholder {
+            color: hsl(var(--muted-foreground));
+        }
+        
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .user-menu {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            cursor: pointer;
+            padding: 0.5rem;
+            border-radius: calc(var(--radius) - 0.25rem);
+            transition: var(--transition-smooth);
+        }
+        
+        .user-menu:hover {
+            background: hsl(var(--muted));
+        }
+        
+        .user-avatar {
+            width: 2rem;
+            height: 2rem;
+            border-radius: 50%;
+            background: hsl(var(--primary));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: hsl(var(--primary-foreground));
+            font-weight: 600;
+            font-size: 0.875rem;
+        }
+        
+        /* Sidebar */
+        .sidebar {
+            width: 16rem;
+            background: hsl(var(--sidebar-bg));
+            border-right: 1px solid hsl(var(--sidebar-border));
+            padding: 5rem 0 1rem 0;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .compose-btn {
+            margin: 0 1rem 2rem 1rem;
+            background: var(--gradient-primary);
+            color: hsl(var(--primary-foreground));
+            border: none;
+            padding: 0.75rem 1rem;
+            border-radius: calc(var(--radius) - 0.125rem);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            box-shadow: var(--shadow-primary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .compose-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-elevated);
+        }
+        
+        .sidebar-nav {
+            flex: 1;
+        }
+        
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem 1rem;
+            margin: 0 0.75rem;
+            border-radius: calc(var(--radius) - 0.25rem);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            color: hsl(var(--foreground));
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+        }
+        
+        .nav-item:hover {
+            background: hsl(var(--email-hover));
+            transform: translateX(2px);
+        }
+        
+        .nav-item.active {
+            background: hsl(var(--primary-light));
+            color: hsl(var(--primary));
+        }
+        
+        .nav-item i {
+            width: 1.25rem;
+            height: 1.25rem;
+        }
+        
+        .nav-item .count {
+            margin-left: auto;
+            background: hsl(var(--primary));
+            color: hsl(var(--primary-foreground));
+            font-size: 0.75rem;
+            padding: 0.125rem 0.5rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+        }
+        
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding-top: 4rem;
+        }
+        
+        .toolbar {
+            padding: 1rem 1.5rem;
+            background: hsl(var(--card));
+            border-bottom: 1px solid hsl(var(--border));
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .toolbar-btn {
+            background: transparent;
+            border: 1px solid hsl(var(--border));
+            padding: 0.5rem;
+            border-radius: calc(var(--radius) - 0.25rem);
+            cursor: pointer;
+            transition: var(--transition-smooth);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .toolbar-btn:hover {
+            background: hsl(var(--muted));
+        }
+        
+        .toolbar-btn i {
+            width: 1rem;
+            height: 1rem;
+        }
+        
+        .email-list {
+            flex: 1;
+            overflow-y: auto;
+            background: hsl(var(--card));
+        }
+        
+        .email-item {
+            display: flex;
+            align-items: center;
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid hsl(var(--border));
+            cursor: pointer;
+            transition: var(--transition-smooth;
+        }
+        
+        .email-item:hover {
+            background: hsl(var(--email-hover));
+        }
+        
+        .email-item.unread {
+            background: hsl(var(--primary-light));
+            font-weight: 600;
+        }
+        
+        .email-checkbox {
+            margin-right: 1rem;
+        }
+        
+        .email-star {
+            margin-right: 1rem;
+            cursor: pointer;
+            color: hsl(var(--muted-foreground));
+            transition: var(--transition-smooth);
+        }
+        
+        .email-star:hover,
+        .email-star.starred {
+            color: #fbbf24;
+        }
+        
+        .email-content {
+            flex: 1;
+            min-width: 0;
+        }
+        
+        .email-sender {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+        
+        .email-subject {
+            font-weight: 500;
+            margin-bottom: 0.25rem;
+        }
+        
+        .email-preview {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .email-time {
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            white-space: nowrap;
+            margin-left: 1rem;
+        }
+        
+        .attachment-icon {
+            margin-left: 0.5rem;
+            color: hsl(var(--muted-foreground));
+        }
+        
+        /* Email View */
+        .email-view {
+            display: none;
+            flex: 1;
+            background: hsl(var(--card));
+            border-left: 1px solid hsl(var(--border));
+            padding: 2rem;
+            overflow-y: auto;
+        }
+        
+        .email-view-header {
+            margin-bottom: 2rem;
+        }
+        
+        .email-view-subject {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+        
+        .email-view-meta {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+        }
+        
+        .email-view-sender {
+            font-weight: 600;
+        }
+        
+        .email-view-date {
+            color: hsl(var(--muted-foreground));
+        }
+        
+        .email-view-body {
+            line-height: 1.6;
+        }
+        
+        /* Compose Modal */
+        .compose-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+            padding: 2rem;
+        }
+        
+        .compose-window {
+            background: hsl(var(--card));
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-elevated);
+            width: 100%;
+            max-width: 48rem;
+            max-height: 90vh;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .compose-header {
+            padding: 1rem 1.5rem;
+            border-bottom: 1px solid hsl(var(--border));
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        
+        .compose-header h3 {
+            font-size: 1.125rem;
+            font-weight: 600;
+        }
+        
+        .compose-form {
+            padding: 1.5rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        
+        .compose-field {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid hsl(var(--border));
+        }
+        
+        .compose-field label {
+            font-weight: 500;
+            color: hsl(var(--muted-foreground));
+            min-width: 4rem;
+        }
+        
+        .compose-field input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-size: 0.875rem;
+        }
+        
+        .compose-body {
+            flex: 1;
+            min-height: 16rem;
+        }
+        
+        .compose-body textarea {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            resize: none;
+            font-family: inherit;
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+        
+        .compose-actions {
+            padding: 1rem 1.5rem;
+            border-top: 1px solid hsl(var(--border));
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .btn-send {
+            background: var(--gradient-primary);
+            color: hsl(var(--primary-foreground));
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: calc(var(--radius) - 0.25rem);
+            font-weight: 600;
+            font-size: 0.875rem;
+            cursor: pointer;
+            transition: var(--transition-bounce);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-send:hover {
+            transform: translateY(-1px);
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: fixed;
+                left: -16rem;
+                transition: left 0.3s ease;
+                z-index: 40;
+                height: 100vh;
+            }
+            
+            .sidebar.open {
+                left: 0;
+            }
+            
+            .main-content {
+                width: 100%;
+            }
+            
+            .search-bar {
+                min-width: 12rem;
+            }
+            
+            .compose-modal {
+                padding: 1rem;
+            }
+            
+            .email-view {
+                position: fixed;
+                top: 4rem;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                z-index: 30;
+            }
+        }
+        
+        @media (max-width: 640px) {
+            .header {
+                padding: 0 1rem;
+            }
+            
+            .search-bar {
+                display: none;
+            }
+            
+            .toolbar,
+            .email-item {
+                padding: 0.75rem 1rem;
+            }
+            
+            .compose-form {
+                padding: 1rem;
+            }
+        }
+        
+        @keyframes slideInRight {
+            from {
+                opacity: 0;
+                transform: translateX(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .animate-slide-in {
+            animation: slideInRight 0.3s ease-out;
+        }
+        
+        /* Loading states */
+        .loading {
+            opacity: 0.6;
+            pointer-events: none;
+        }
+        
+        .spinner {
+            width: 1.5rem;
+            height: 1.5rem;
+            border: 2px solid hsl(var(--muted));
+            border-top: 2px solid hsl(var(--primary));
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-left">
+            <button class="toolbar-btn" id="menu-toggle">
+                <i data-lucide="menu"></i>
+            </button>
+            <h1 class="logo">Samos Mail</h1>
+            <div class="search-bar">
+                <i data-lucide="search"></i>
+                <input type="text" placeholder="Search emails..." id="search-input">
+            </div>
+        </div>
+        
+        <div class="header-right">
+            <button class="toolbar-btn" id="settings-btn">
+                <i data-lucide="settings"></i>
+            </button>
+            <div class="user-menu" id="user-menu">
+                <div class="user-avatar" id="user-avatar">SM</div>
+                <span id="user-name">Samos User</span>
+                <i data-lucide="chevron-down"></i>
+            </div>
+        </div>
+    </header>
+    
+    <div class="email-container">
+        <!-- Sidebar -->
+        <nav class="sidebar" id="sidebar">
+            <button class="compose-btn" id="compose-btn">
+                <i data-lucide="edit-3"></i>
+                Compose
+            </button>
+            
+            <div class="sidebar-nav">
+                <a href="#" class="nav-item active" data-folder="inbox">
+                    <i data-lucide="inbox"></i>
+                    Inbox
+                    <span class="count" id="inbox-count">0</span>
+                </a>
+                <a href="#" class="nav-item" data-folder="starred">
+                    <i data-lucide="star"></i>
+                    Starred
+                </a>
+                <a href="#" class="nav-item" data-folder="sent">
+                    <i data-lucide="send"></i>
+                    Sent
+                </a>
+                <a href="#" class="nav-item" data-folder="drafts">
+                    <i data-lucide="file-text"></i>
+                    Drafts
+                    <span class="count" id="drafts-count">0</span>
+                </a>
+                <a href="#" class="nav-item" data-folder="trash">
+                    <i data-lucide="trash-2"></i>
+                    Trash
+                </a>
+            </div>
+        </nav>
+        
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <button class="toolbar-btn" id="refresh-btn" title="Refresh">
+                    <i data-lucide="refresh-cw"></i>
+                </button>
+                <button class="toolbar-btn" id="delete-btn" title="Delete">
+                    <i data-lucide="trash-2"></i>
+                </button>
+                <button class="toolbar-btn" id="archive-btn" title="Archive">
+                    <i data-lucide="archive"></i>
+                </button>
+                <button class="toolbar-btn" id="mark-read-btn" title="Mark as Read">
+                    <i data-lucide="mail-open"></i>
+                </button>
+                <button class="toolbar-btn" id="mark-unread-btn" title="Mark as Unread">
+                    <i data-lucide="mail"></i>
+                </button>
+            </div>
+            
+            <!-- Email List -->
+            <div class="email-list" id="email-list">
+                <div class="loading-state" style="text-align: center; padding: 2rem;">
+                    <div class="spinner" style="margin: 0 auto;"></div>
+                    <p style="margin-top: 1rem; color: hsl(var(--muted-foreground));">Loading emails...</p>
+                </div>
+            </div>
+        </main>
+        
+        <!-- Email View -->
+        <div class="email-view" id="email-view">
+            <div class="email-view-header">
+                <h2 class="email-view-subject" id="email-view-subject"></h2>
+                <div class="email-view-meta">
+                    <div>
+                        <span class="email-view-sender" id="email-view-sender"></span>
+                        <span id="email-view-recipient"></span>
+                    </div>
+                    <span class="email-view-date" id="email-view-date"></span>
+                </div>
+            </div>
+            <div class="email-view-body" id="email-view-body"></div>
+        </div>
+    </div>
+    
+    <!-- Compose Modal -->
+    <div class="compose-modal hidden" id="compose-modal">
+        <div class="compose-window">
+            <div class="compose-header">
+                <h3>New Message</h3>
+                <button class="toolbar-btn" id="close-compose">
+                    <i data-lucide="x"></i>
+                </button>
+            </div>
+            
+            <form class="compose-form" id="compose-form">
+                <div class="compose-field">
+                    <label>To:</label>
+                    <input type="email" id="compose-to" required placeholder="recipient@example.com">
+                </div>
+                
+                <div class="compose-field">
+                    <label>Subject:</label>
+                    <input type="text" id="compose-subject" placeholder="Email subject">
+                </div>
+                
+                <div class="compose-body">
+                    <textarea id="compose-message" placeholder="Write your message here..."></textarea>
+                </div>
+            </form>
+            
+            <div class="compose-actions">
+                <button class="btn-send" id="send-btn">
+                    <i data-lucide="send"></i>
+                    Send
+                </button>
+                <button class="toolbar-btn" id="attach-btn" title="Attach File">
+                    <i data-lucide="paperclip"></i>
+                </button>
+                <button class="toolbar-btn" id="format-btn" title="Format">
+                    <i data-lucide="type"></i>
+                </button>
+                <button class="toolbar-btn" id="save-draft-btn" title="Save Draft">
+                    <i data-lucide="save"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+    <script>
+        // Initialize Supabase
+        const SUPABASE_URL = 'https://wwozfloysrxnayaxmtgw.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3b3pmbG95c3J4bmF5YXhtdGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0ODE1NDEsImV4cCI6MjA3MzA1NzU0MX0._TwAouJIbB_XY3i0jmQkP1DJDoplGzVdluWMa1TmG5M';
+        
+        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Initialize Lucide icons
+        lucide.createIcons();
+        
+        // Global state
+        let currentUser = null;
+        let currentFolder = 'inbox';
+        let emails = [];
+        let selectedEmails = new Set();
+        
+        // DOM elements
+        const emailList = document.getElementById('email-list');
+        const emailView = document.getElementById('email-view');
+        const composeModal = document.getElementById('compose-modal');
+        
+        // Check authentication and load user data
+        async function initApp() {
+            const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+            
+            if (!session) {
+                window.location.href = 'auth.html';
+                return;
+            }
+            
+            currentUser = session.user;
+            
+            // Set user info
+            const { data: profile } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', currentUser.id)
+                .single();
+                
+            if (profile) {
+                document.getElementById('user-name').textContent = profile.full_name || currentUser.email.split('@')[0];
+                const initials = profile.full_name ? 
+                    profile.full_name.split(' ').map(n => n[0]).join('').toUpperCase() : 
+                    currentUser.email.split('@')[0].substring(0, 2).toUpperCase();
+                document.getElementById('user-avatar').textContent = initials;
+            }
+            
+            // Load emails
+            loadEmails();
+            
+            // Set up real-time subscription for new emails
+            setupRealtime();
+        }
+        
+        // Load emails based on current folder
+        async function loadEmails() {
+            emailList.innerHTML = `
+                <div class="loading-state" style="text-align: center; padding: 2rem;">
+                    <div class="spinner" style="margin: 0 auto;"></div>
+                    <p style="margin-top: 1rem; color: hsl(var(--muted-foreground));">Loading emails...</p>
+                </div>
+            `;
+            
+            let query = supabase
+                .from('emails')
+                .select('*')
+                .order('created_at', { ascending: false });
+            
+            // Filter based on folder
+            if (currentFolder === 'inbox') {
+                query = query.eq('recipient_id', currentUser.id).eq('folder', 'inbox');
+            } else if (currentFolder === 'sent') {
+                query = query.eq('sender_id', currentUser.id).eq('folder', 'sent');
+            } else if (currentFolder === 'starred') {
+                query = query.eq('recipient_id', currentUser.id).eq('starred', true);
+            } else if (currentFolder === 'drafts') {
+                query = query.eq('sender_id', currentUser.id).eq('folder', 'drafts');
+            } else if (currentFolder === 'trash') {
+                query = query.or(`sender_id.eq.${currentUser.id},recipient_id.eq.${currentUser.id}`).eq('folder', 'trash');
+            }
+            
+            const { data, error } = await query;
+            
+            if (error) {
+                console.error('Error loading emails:', error);
+                emailList.innerHTML = `<div style="text-align: center; padding: 2rem; color: hsl(var(--muted-foreground));">Error loading emails</div>`;
+                return;
+            }
+            
+            emails = data || [];
+            renderEmails();
+            
+            // Update counts
+            updateFolderCounts();
+        }
+        
+        // Update folder counts
+        async function updateFolderCounts() {
+            // Inbox count
+            const { count: inboxCount } = await supabase
+                .from('emails')
+                .select('*', { count: 'exact', head: true })
+                .eq('recipient_id', currentUser.id)
+                .eq('folder', 'inbox')
+                .eq('read', false);
+                
+            document.getElementById('inbox-count').textContent = inboxCount || 0;
+            
+            // Drafts count
+            const { count: draftsCount } = await supabase
+                .from('emails')
+                .select('*', { count: 'exact', head: true })
+                .eq('sender_id', currentUser.id)
+                .eq('folder', 'drafts');
+                
+            document.getElementById('drafts-count').textContent = draftsCount || 0;
+        }
+        
+        // Render email list
+        function renderEmails() {
+            if (emails.length === 0) {
+                emailList.innerHTML = `<div style="text-align: center; padding: 2rem; color: hsl(var(--muted-foreground));">No emails found</div>`;
+                return;
+            }
+            
+            emailList.innerHTML = emails.map(email => {
+                const senderName = email.sender_name || email.sender_email;
+                const isUnread = currentFolder === 'inbox' && !email.read;
+                const hasAttachment = email.attachments && email.attachments.length > 0;
+                const time = formatEmailTime(email.created_at);
+                
+                return `
+                    <div class="email-item ${isUnread ? 'unread' : ''}" data-email-id="${email.id}">
+                        <input type="checkbox" class="email-checkbox" data-email-id="${email.id}">
+                        <i class="email-star ${email.starred ? 'starred' : ''}" data-email-id="${email.id}" data-lucide="star"></i>
+                        <div class="email-content">
+                            <div class="email-sender">${currentFolder === 'sent' ? `To: ${email.recipient_email}` : senderName}</div>
+                            <div class="email-subject">${email.subject || '(No subject)'}</div>
+                            <div class="email-preview">${email.body ? email.body.substring(0, 100) + (email.body.length > 100 ? '...' : '') : ''}</div>
+                        </div>
+                        <div class="email-time">${time}</div>
+                        ${hasAttachment ? '<i class="attachment-icon" data-lucide="paperclip"></i>' : ''}
+                    </div>
+                `;
+            }).join('');
+            
+            // Re-initialize icons
+            lucide.createIcons();
+            
+            // Add event listeners
+            document.querySelectorAll('.email-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    if (!e.target.classList.contains('email-checkbox') && !e.target.classList.contains('email-star')) {
+                        const emailId = item.dataset.emailId;
+                        viewEmail(emailId);
+                    }
+                });
+            });
+            
+            document.querySelectorAll('.email-checkbox').forEach(checkbox => {
+                checkbox.addEventListener('change', (e) => {
+                    const emailId = checkbox.dataset.emailId;
+                    if (checkbox.checked) {
+                        selectedEmails.add(emailId);
+                    } else {
+                        selectedEmails.delete(emailId);
+                    }
+                    updateToolbarState();
+                });
+            });
+            
+            document.querySelectorAll('.email-star').forEach(star => {
+                star.addEventListener('click', async (e) => {
+                    e.stopPropagation();
+                    const emailId = star.dataset.emailId;
+                    await toggleStarEmail(emailId);
+                });
+            });
+        }
+        
+        // View individual email
+        async function viewEmail(emailId) {
+            const email = emails.find(e => e.id === emailId);
+            if (!email) return;
+            
+            // Mark as read if it's in inbox
+            if (currentFolder === 'inbox' && !email.read) {
+                await supabase
+                    .from('emails')
+                    .update({ read: true })
+                    .eq('id', emailId);
+                
+                email.read = true;
+                document.querySelector(`.email-item[data-email-id="${emailId}"]`).classList.remove('unread');
+                updateFolderCounts();
+            }
+            
+            // Show email view
+            document.getElementById('email-view-subject').textContent = email.subject || '(No subject)';
+            document.getElementById('email-view-sender').textContent = currentFolder === 'sent' 
+                ? `To: ${email.recipient_email}` 
+                : `${email.sender_name || email.sender_email}`;
+            document.getElementById('email-view-date').textContent = formatEmailDate(email.created_at);
+            document.getElementById('email-view-body').textContent = email.body || '';
+            
+            emailView.style.display = 'block';
+            
+            // Adjust layout for responsive view
+            if (window.innerWidth <= 768) {
+                document.querySelector('.main-content').style.display = 'none';
+            }
+        }
+        
+        // Toggle star on email
+        async function toggleStarEmail(emailId) {
+            const email = emails.find(e => e.id === emailId);
+            if (!email) return;
+            
+            const newStarredValue = !email.starred;
+            
+            const { error } = await supabase
+                .from('emails')
+                .update({ starred: newStarredValue })
+                .eq('id', emailId);
+                
+            if (error) {
+                console.error('Error toggling star:', error);
+                return;
+            }
+            
+            email.starred = newStarredValue;
+            
+            // Update UI
+            const starElement = document.querySelector(`.email-star[data-email-id="${emailId}"]`);
+            if (newStarredValue) {
+                starElement.classList.add('starred');
+            } else {
+                starElement.classList.remove('starred');
+            }
+            
+            // If we're in the starred folder and unstarring, remove from view
+            if (currentFolder === 'starred' && !newStarredValue) {
+                emails = emails.filter(e => e.id !== emailId);
+                renderEmails();
+            }
+        }
+        
+        // Compose new email
+        function composeEmail() {
+            composeModal.classList.remove('hidden');
+            document.getElementById('compose-to').value = '';
+            document.getElementById('compose-subject').value = '';
+            document.getElementById('compose-message').value = '';
+        }
+        
+        // Send email
+        async function sendEmail() {
+            const to = document.getElementById('compose-to').value;
+            const subject = document.getElementById('compose-subject').value;
+            const body = document.getElementById('compose-message').value;
+            
+            if (!to || !body) {
+                alert('Please fill in recipient and message');
+                return;
+            }
+            
+            // Get recipient user ID
+            const { data: recipient } = await supabase
+                .from('profiles')
+                .select('id, email')
+                .ilike('email', to)
+                .single();
+                
+            if (!recipient) {
+                alert('Recipient not found');
+                return;
+            }
+            
+            // Create email record
+            const { data, error } = await supabase
+                .from('emails')
+                .insert({
+                    sender_id: currentUser.id,
+                    sender_email: currentUser.email,
+                    sender_name: currentUser.user_metadata?.full_name,
+                    recipient_id: recipient.id,
+                    recipient_email: recipient.email,
+                    subject: subject,
+                    body: body,
+                    folder: 'sent'
+                })
+                .select()
+                .single();
+                
+            if (error) {
+                console.error('Error sending email:', error);
+                alert('Error sending email');
+                return;
+            }
+            
+            // Also create a copy in recipient's inbox
+            await supabase
+                .from('emails')
+                .insert({
+                    sender_id: currentUser.id,
+                    sender_email: currentUser.email,
+                    sender_name: currentUser.user_metadata?.full_name,
+                    recipient_id: recipient.id,
+                    recipient_email: recipient.email,
+                    subject: subject,
+                    body: body,
+                    folder: 'inbox'
+                });
+                
+            composeModal.classList.add('hidden');
+            alert('Email sent successfully!');
+            
+            // Reload emails if we're in sent folder
+            if (currentFolder === 'sent') {
+                loadEmails();
+            }
+        }
+        
+        // Save draft
+        async function saveDraft() {
+            const to = document.getElementById('compose-to').value;
+            const subject = document.getElementById('compose-subject').value;
+            const body = document.getElementById('compose-message').value;
+            
+            // Create draft record
+            const { error } = await supabase
+                .from('emails')
+                .insert({
+                    sender_id: currentUser.id,
+                    sender_email: currentUser.email,
+                    recipient_email: to,
+                    subject: subject,
+                    body: body,
+                    folder: 'drafts'
+                });
+                
+            if (error) {
+                console.error('Error saving draft:', error);
+                alert('Error saving draft');
+                return;
+            }
+            
+            composeModal.classList.add('hidden');
+            alert('Draft saved successfully!');
+            
+            // Reload emails if we're in drafts folder
+            if (currentFolder === 'drafts') {
+                loadEmails();
+            }
+        }
+        
+        // Delete selected emails
+        async function deleteEmails() {
+            if (selectedEmails.size === 0) return;
+            
+            if (!confirm(`Move ${selectedEmails.size} email(s) to trash?`)) return;
+            
+            for (const emailId of selectedEmails) {
+                await supabase
+                    .from('emails')
+                    .update({ folder: 'trash' })
+                    .eq('id', emailId);
+            }
+            
+            // Remove from current view
+            emails = emails.filter(email => !selectedEmails.has(email.id));
+            selectedEmails.clear();
+            renderEmails();
+            updateToolbarState();
+        }
+        
+        // Mark selected emails as read/unread
+        async function markEmailsAsRead(read) {
+            if (selectedEmails.size === 0) return;
+            
+            for (const emailId of selectedEmails) {
+                await supabase
+                    .from('emails')
+                    .update({ read: read })
+                    .eq('id', emailId);
+                    
+                // Update local data
+                const email = emails.find(e => e.id === emailId);
+                if (email) {
+                    email.read = read;
+                }
+            }
+            
+            renderEmails();
+            updateFolderCounts();
+        }
+        
+        // Update toolbar state based on selection
+        function updateToolbarState() {
+            const hasSelection = selectedEmails.size > 0;
+            document.getElementById('delete-btn').disabled = !hasSelection;
+            document.getElementById('archive-btn').disabled = !hasSelection;
+            document.getElementById('mark-read-btn').disabled = !hasSelection;
+            document.getElementById('mark-unread-btn').disabled = !hasSelection;
+        }
+        
+        // Format email time
+        function formatEmailTime(dateString) {
+            const date = new Date(dateString);
+            const now = new Date();
+            const diffMs = now - date;
+            const diffMins = Math.round(diffMs / (1000 * 60));
+            const diffHours = Math.round(diffMs / (1000 * 60 * 60));
+            
+            if (diffMins < 1) return 'Just now';
+            if (diffMins < 60) return `${diffMins}m ago`;
+            if (diffHours < 24) return `${diffHours}h ago`;
+            
+            return date.toLocaleDateString();
+        }
+        
+        // Format email date
+        function formatEmailDate(dateString) {
+            const date = new Date(dateString);
+            return date.toLocaleString();
+        }
+        
+        // Set up real-time subscription
+        function setupRealtime() {
+            supabase
+                .channel('emails-changes')
+                .on('postgres_changes', 
+                    { 
+                        event: 'INSERT', 
+                        schema: 'public', 
+                        table: 'emails',
+                        filter: `recipient_id=eq.${currentUser.id}`
+                    }, 
+                    (payload) => {
+                        // New email received
+                        if (payload.new.folder === 'inbox' && currentFolder === 'inbox') {
+                            emails.unshift(payload.new);
+                            renderEmails();
+                        }
+                        updateFolderCounts();
+                    }
+                )
+                .subscribe();
+        }
+        
+        // Initialize event listeners
+        function initEventListeners() {
+            // Mobile menu toggle
+            document.getElementById('menu-toggle').addEventListener('click', () => {
+                document.getElementById('sidebar').classList.toggle('open');
+            });
+            
+            // Compose modal
+            document.getElementById('compose-btn').addEventListener('click', composeEmail);
+            document.getElementById('close-compose').addEventListener('click', () => {
+                composeModal.classList.add('hidden');
+            });
+            composeModal.addEventListener('click', (e) => {
+                if (e.target === composeModal) {
+                    composeModal.classList.add('hidden');
+                }
+            });
+            
+            // Send email
+            document.getElementById('send-btn').addEventListener('click', sendEmail);
+            
+            // Save draft
+            document.getElementById('save-draft-btn').addEventListener('click', saveDraft);
+            
+            // Navigation
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    
+                    // Update active state
+                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
+                    item.classList.add('active');
+                    
+                    currentFolder = item.dataset.folder;
+                    loadEmails();
+                    
+                    // Hide email view
+                    emailView.style.display = 'none';
+                    if (window.innerWidth <= 768) {
+                        document.querySelector('.main-content').style.display = 'flex';
+                    }
+                });
+            });
+            
+            // Toolbar actions
+            document.getElementById('refresh-btn').addEventListener('click', loadEmails);
+            document.getElementById('delete-btn').addEventListener('click', deleteEmails);
+            document.getElementById('mark-read-btn').addEventListener('click', () => markEmailsAsRead(true));
+            document.getElementById('mark-unread-btn').addEventListener('click', () => markEmailsAsRead(false));
+            
+            // Archive button (moves to archive folder)
+            document.getElementById('archive-btn').addEventListener('click', async () => {
+                if (selectedEmails.size === 0) return;
+                
+                for (const emailId of selectedEmails) {
+                    await supabase
+                        .from('emails')
+                        .update({ folder: 'archive' })
+                        .eq('id', emailId);
+                }
+                
+                // Remove from current view
+                emails = emails.filter(email => !selectedEmails.has(email.id));
+                selectedEmails.clear();
+                renderEmails();
+            });
+            
+            // User menu logout
+            document.getElementById('user-menu').addEventListener('click', async () => {
+                const confirmLogout = confirm('Are you sure you want to sign out?');
+                if (confirmLogout) {
+                    await supabase.auth.signOut();
+                    window.location.href = 'auth.html';
+                }
+            });
+            
+            // Search functionality
+            document.getElementById('search-input').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                if (query.length < 2) {
+                    renderEmails();
+                    return;
+                }
+                
+                const filteredEmails = emails.filter(email => 
+                    email.subject?.toLowerCase().includes(query) ||
+                    email.body?.toLowerCase().includes(query) ||
+                    email.sender_email?.toLowerCase().includes(query) ||
+                    email.recipient_email?.toLowerCase().includes(query)
+                );
+                
+                // Temporary render for search results
+                if (filteredEmails.length === 0) {
+                    emailList.innerHTML = `<div style="text-align: center; padding: 2rem; color: hsl(var(--muted-foreground));">No matching emails found</div>`;
+                    return;
+                }
+                
+                emailList.innerHTML = filteredEmails.map(email => {
+                    const senderName = email.sender_name || email.sender_email;
+                    const isUnread = currentFolder === 'inbox' && !email.read;
+                    const hasAttachment = email.attachments && email.attachments.length > 0;
+                    const time = formatEmailTime(email.created_at);
+                    
+                    return `
+                        <div class="email-item ${isUnread ? 'unread' : ''}" data-email-id="${email.id}">
+                            <input type="checkbox" class="email-checkbox" data-email-id="${email.id}">
+                            <i class="email-star ${email.starred ? 'starred' : ''}" data-email-id="${email.id}" data-lucide="star"></i>
+                            <div class="email-content">
+                                <div class="email-sender">${currentFolder === 'sent' ? `To: ${email.recipient_email}` : senderName}</div>
+                                <div class="email-subject">${email.subject || '(No subject)'}</div>
+                                <div class="email-preview">${email.body ? email.body.substring(0, 100) + (email.body.length > 100 ? '...' : '') : ''}</div>
+                            </div>
+                            <div class="email-time">${time}</div>
+                            ${hasAttachment ? '<i class="attachment-icon" data-lucide="paperclip"></i>' : ''}
+                        </div>
+                    `;
+                }).join('');
+                
+                lucide.createIcons();
+            });
+            
+            // Back button for mobile view
+            const backButton = document.createElement('button');
+            backButton.innerHTML = '<i data-lucide="arrow-left"></i> Back';
+            backButton.style.display = 'none';
+            backButton.style.marginRight = '1rem';
+            backButton.classList.add('toolbar-btn');
+            backButton.addEventListener('click', () => {
+                emailView.style.display = 'none';
+                document.querySelector('.main-content').style.display = 'flex';
+            });
+            
+            document.querySelector('.toolbar').prepend(backButton);
+            
+            // Show back button in mobile view when email is open
+            if (window.innerWidth <= 768) {
+                backButton.style.display = 'flex';
+            }
+            
+            window.addEventListener('resize', () => {
+                if (window.innerWidth <= 768 && emailView.style.display !== 'none') {
+                    backButton.style.display = 'flex';
+                } else {
+                    backButton.style.display = 'none';
+                }
+            });
+        }
+        
+        // Initialize the application
+        initApp();
+        initEventListeners();
+    </script>
+</body>
+</html>
