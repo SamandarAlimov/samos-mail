@@ -7,11 +7,19 @@
     <meta name="description" content="Secure email service for Samos Global Technologies Inc. Create your @samos.com account today.">
     <meta name="author" content="Samos Global Technologies Inc.">
     
+    <!-- Allow unsafe-eval if needed for libraries (test without first) -->
+    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com;">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="Samos Mail - Professional Email Service">
+    <meta property="og:description" content="Secure, professional email service for Samos Global Technologies">
+    <meta property="og:type" content="website">
+    
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
+    
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    
-    <!-- Icons -->
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.294.0/lucide.min.css" rel="stylesheet">
     
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -414,7 +422,7 @@
                 <div class="form-group">
                     <div class="input-group">
                         <input type="email" class="input-field" id="signup-email" required>
-                        <label class="floating-label" for="signup-email">Email Address</label>
+                        <label class="floating-label" for="signup-email">Email Address (will create @samos.com)</label>
                     </div>
                 </div>
                 
@@ -436,7 +444,7 @@
                 <div id="signup-success" class="success-message"></div>
                 
                 <div class="form-group">
-                    <button type="submit" class="btn-primary">Create Your Account</button>
+                    <button type="submit" class="btn-primary">Create Your @samos.com Account</button>
                 </div>
             </form>
         </div>
@@ -444,8 +452,7 @@
 
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script>
-        // Initialize Supabase
-        // Replace these with your actual Supabase project URL and API key
+        // Initialize Supabase - REPLACE WITH YOUR ACTUAL VALUES!
         const SUPABASE_URL = 'https://wwozfloysrxnayaxmtgw.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3b3pmbG95c3J4bmF5YXhtdGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0ODE1NDEsImV4cCI6MjA3MzA1NzU0MX0._TwAouJIbB_XY3i0jmQkP1DJDoplGzVdluWMa1TmG5M';
         
@@ -458,8 +465,6 @@
         const tabButtons = document.querySelectorAll('.tab-button');
         const signinForm = document.getElementById('signin-form');
         const signupForm = document.getElementById('signup-form');
-        const signupError = document.getElementById('signup-error');
-        const signupSuccess = document.getElementById('signup-success');
         
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -513,16 +518,16 @@
         // Profile image upload
         const profileInput = document.getElementById('profile-input');
         const profilePreview = document.getElementById('profile-preview');
-        const profileIcon = document.querySelector('.profile-image i');
+        const profileIcon = document.querySelector('.profile-image .lucide'); // Fixed selector for Lucide SVG
         
-        profileInput.addEventListener('change', (e) => {
+        profileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
             if (file) {
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     profilePreview.src = e.target.result;
                     profilePreview.style.display = 'block';
-                    profileIcon.style.display = 'none';
+                    if (profileIcon) profileIcon.style.display = 'none';
                 };
                 reader.readAsDataURL(file);
             }
@@ -555,9 +560,12 @@
                 
                 if (error) throw error;
                 
+                console.log('Sign in success:', data); // Debug
+                
                 // Redirect to main email interface
                 window.location.href = 'mail.html';
             } catch (error) {
+                console.error('Sign in error:', error); // Debug
                 errorElement.textContent = error.message;
                 errorElement.style.display = 'block';
             }
@@ -572,22 +580,23 @@
             const password = document.getElementById('signup-password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
             
+            const errorElement = document.getElementById('signup-error');
+            const successElement = document.getElementById('signup-success');
+            
             // Clear previous messages
-            signupError.style.display = 'none';
-            signupSuccess.style.display = 'none';
-            signupError.textContent = '';
-            signupSuccess.textContent = '';
+            errorElement.style.display = 'none';
+            successElement.style.display = 'none';
             
             // Validate inputs
             if (!fullname || !birthday || !phone || !email || !password || !confirmPassword) {
-                signupError.textContent = 'Please fill in all fields';
-                signupError.style.display = 'block';
+                errorElement.textContent = 'Please fill in all fields';
+                errorElement.style.display = 'block';
                 return;
             }
             
             if (password !== confirmPassword) {
-                signupError.textContent = 'Passwords do not match!';
-                signupError.style.display = 'block';
+                errorElement.textContent = 'Passwords do not match!';
+                errorElement.style.display = 'block';
                 return;
             }
             
@@ -602,25 +611,27 @@
                             birthday: birthday,
                             phone: phone,
                             avatar_url: profilePreview.src || null
-                        },
-                        emailRedirectTo: window.location.origin + '/auth.html'
+                        }
                     }
                 });
                 
                 if (error) throw error;
                 
+                console.log('Signup success:', data); // Debug
+                
                 // Show success message
-                signupSuccess.textContent = 'Account created successfully! Please check your email to verify your account.';
-                signupSuccess.style.display = 'block';
+                successElement.textContent = 'Account created successfully! Please check your email to verify your account.';
+                successElement.style.display = 'block';
                 
                 // Clear form
                 signupForm.reset();
                 profilePreview.style.display = 'none';
-                profileIcon.style.display = 'block';
+                if (profileIcon) profileIcon.style.display = 'block';
                 
             } catch (error) {
-                signupError.textContent = error.message;
-                signupError.style.display = 'block';
+                console.error('Signup error:', error); // Debug
+                errorElement.textContent = error.message;
+                errorElement.style.display = 'block';
             }
         });
         
