@@ -7,23 +7,19 @@
     <meta name="description" content="Secure email service for Samos Global Technologies Inc. Create your @samos.com account today.">
     <meta name="author" content="Samos Global Technologies Inc.">
     
-    <!-- Allow unsafe-eval if needed for libraries (test without first) -->
-    <meta http-equiv="Content-Security-Policy" content="script-src 'self' 'unsafe-eval' https://cdn.jsdelivr.net https://unpkg.com;">
-
     <!-- Open Graph -->
     <meta property="og:title" content="Samos Mail - Professional Email Service">
     <meta property="og:description" content="Secure, professional email service for Samos Global Technologies">
     <meta property="og:type" content="website">
     
-    <!-- Favicon & App Icons -->
-    <link rel="icon" href="/favicon.svg" type="image/x-icon">
-    <link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.svg">
-    <link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">
-    <link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">
-    <link rel="manifest" href="/site.webmanifest">
+    <!-- Favicon -->
+    <link rel="icon" type="image/x-icon" href="/favicon.ico">
     
     <!-- Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.294.0/lucide.min.css" rel="stylesheet">
     
     <!-- Supabase -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -148,6 +144,7 @@
         
         .form-group {
             margin-bottom: 1.5rem;
+            position: relative;
         }
         
         .profile-upload {
@@ -308,7 +305,6 @@
             font-size: 0.875rem;
             margin-top: 0.5rem;
             text-align: center;
-            display: none;
         }
         
         .success-message {
@@ -316,7 +312,32 @@
             font-size: 0.875rem;
             margin-top: 0.5rem;
             text-align: center;
-            display: none;
+        }
+        
+        .email-suffix {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            color: hsl(var(--muted-foreground));
+            font-size: 0.875rem;
+            pointer-events: none;
+        }
+        
+        .password-toggle {
+            position: absolute;
+            right: 1rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: hsl(var(--muted-foreground));
+            cursor: pointer;
+            padding: 0.25rem;
+        }
+        
+        .password-toggle:hover {
+            color: hsl(var(--primary));
         }
         
         @media (max-width: 640px) {
@@ -376,10 +397,13 @@
                     <div class="input-group">
                         <input type="password" class="input-field" id="signin-password" required>
                         <label class="floating-label" for="signin-password">Password</label>
+                        <button type="button" class="password-toggle" id="signin-password-toggle">
+                            <i data-lucide="eye"></i>
+                        </button>
                     </div>
                 </div>
                 
-                <div id="signin-error" class="error-message"></div>
+                <div id="signin-error" class="error-message hidden"></div>
                 
                 <div class="form-group">
                     <button type="submit" class="btn-primary">Sign In to Your Account</button>
@@ -395,7 +419,7 @@
                 <div class="profile-upload">
                     <div class="profile-image">
                         <i data-lucide="user-plus"></i>
-                        <img id="profile-preview" style="display: none;" alt="Profile">
+                        <img id="profile-preview" class="hidden" alt="Profile">
                         <input type="file" id="profile-input" accept="image/*">
                     </div>
                 </div>
@@ -425,8 +449,9 @@
                 
                 <div class="form-group">
                     <div class="input-group">
-                        <input type="email" class="input-field" id="signup-email" required>
-                        <label class="floating-label" for="signup-email">Email Address (will create @samos.com)</label>
+                        <input type="text" class="input-field" id="signup-username" required>
+                        <label class="floating-label" for="signup-username">Username</label>
+                        <span class="email-suffix">@samos.com</span>
                     </div>
                 </div>
                 
@@ -434,6 +459,9 @@
                     <div class="input-group">
                         <input type="password" class="input-field" id="signup-password" required>
                         <label class="floating-label" for="signup-password">Password</label>
+                        <button type="button" class="password-toggle" id="signup-password-toggle">
+                            <i data-lucide="eye"></i>
+                        </button>
                     </div>
                 </div>
                 
@@ -441,11 +469,14 @@
                     <div class="input-group">
                         <input type="password" class="input-field" id="confirm-password" required>
                         <label class="floating-label" for="confirm-password">Confirm Password</label>
+                        <button type="button" class="password-toggle" id="confirm-password-toggle">
+                            <i data-lucide="eye"></i>
+                        </button>
                     </div>
                 </div>
                 
-                <div id="signup-error" class="error-message"></div>
-                <div id="signup-success" class="success-message"></div>
+                <div id="signup-error" class="error-message hidden"></div>
+                <div id="signup-success" class="success-message hidden"></div>
                 
                 <div class="form-group">
                     <button type="submit" class="btn-primary">Create Your @samos.com Account</button>
@@ -456,7 +487,8 @@
 
     <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
     <script>
-        // Initialize Supabase - REPLACE WITH YOUR ACTUAL VALUES!
+        // Initialize Supabase
+        // Replace these with your actual Supabase URL and API key
         const SUPABASE_URL = 'https://wwozfloysrxnayaxmtgw.supabase.co';
         const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind3b3pmbG95c3J4bmF5YXhtdGd3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTc0ODE1NDEsImV4cCI6MjA3MzA1NzU0MX0._TwAouJIbB_XY3i0jmQkP1DJDoplGzVdluWMa1TmG5M';
         
@@ -465,10 +497,15 @@
         // Initialize Lucide icons
         lucide.createIcons();
         
-        // Form switching
-        const tabButtons = document.querySelectorAll('.tab-button');
+        // DOM Elements
         const signinForm = document.getElementById('signin-form');
         const signupForm = document.getElementById('signup-form');
+        const signinError = document.getElementById('signin-error');
+        const signupError = document.getElementById('signup-error');
+        const signupSuccess = document.getElementById('signup-success');
+        
+        // Form switching
+        const tabButtons = document.querySelectorAll('.tab-button');
         
         tabButtons.forEach(button => {
             button.addEventListener('click', () => {
@@ -486,6 +523,9 @@
                     signinForm.classList.add('hidden');
                     signupForm.classList.remove('hidden');
                 }
+                
+                // Clear messages when switching tabs
+                hideAllMessages();
             });
         });
         
@@ -522,7 +562,7 @@
         // Profile image upload
         const profileInput = document.getElementById('profile-input');
         const profilePreview = document.getElementById('profile-preview');
-        const profileIcon = document.querySelector('.profile-image .lucide'); // Fixed selector for Lucide SVG
+        const profileIcon = document.querySelector('.profile-image i');
         
         profileInput.addEventListener('change', async (e) => {
             const file = e.target.files[0];
@@ -530,48 +570,83 @@
                 const reader = new FileReader();
                 reader.onload = (e) => {
                     profilePreview.src = e.target.result;
-                    profilePreview.style.display = 'block';
-                    if (profileIcon) profileIcon.style.display = 'none';
+                    profilePreview.classList.remove('hidden');
+                    profileIcon.classList.add('hidden');
                 };
                 reader.readAsDataURL(file);
             }
         });
+        
+        // Password toggle functionality
+        function setupPasswordToggle(passwordFieldId, toggleButtonId) {
+            const passwordField = document.getElementById(passwordFieldId);
+            const toggleButton = document.getElementById(toggleButtonId);
+            const eyeIcon = toggleButton.querySelector('i');
+            
+            toggleButton.addEventListener('click', () => {
+                if (passwordField.type === 'password') {
+                    passwordField.type = 'text';
+                    eyeIcon.setAttribute('data-lucide', 'eye-off');
+                } else {
+                    passwordField.type = 'password';
+                    eyeIcon.setAttribute('data-lucide', 'eye');
+                }
+                lucide.createIcons();
+            });
+        }
+        
+        // Set up password toggles
+        setupPasswordToggle('signin-password', 'signin-password-toggle');
+        setupPasswordToggle('signup-password', 'signup-password-toggle');
+        setupPasswordToggle('confirm-password', 'confirm-password-toggle');
+        
+        // Helper functions for messages
+        function showError(element, message) {
+            element.textContent = message;
+            element.classList.remove('hidden');
+            signupSuccess.classList.add('hidden');
+        }
+        
+        function showSuccess(message) {
+            signupSuccess.textContent = message;
+            signupSuccess.classList.remove('hidden');
+            signupError.classList.add('hidden');
+        }
+        
+        function hideAllMessages() {
+            signinError.classList.add('hidden');
+            signupError.classList.add('hidden');
+            signupSuccess.classList.add('hidden');
+        }
         
         // Form submissions
         signinForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const email = document.getElementById('signin-email').value;
             const password = document.getElementById('signin-password').value;
-            const errorElement = document.getElementById('signin-error');
             
             // Clear previous errors
-            errorElement.style.display = 'none';
-            errorElement.textContent = '';
+            hideAllMessages();
             
             // Validate inputs
             if (!email || !password) {
-                errorElement.textContent = 'Please fill in all fields';
-                errorElement.style.display = 'block';
+                showError(signinError, 'Please fill in all fields');
                 return;
             }
             
             try {
                 // Sign in with Supabase
                 const { data, error } = await supabase.auth.signInWithPassword({
-                    email: email,
+                    email: email + (email.includes('@') ? '' : '@samos.com'),
                     password: password
                 });
                 
                 if (error) throw error;
                 
-                console.log('Sign in success:', data); // Debug
-                
                 // Redirect to main email interface
                 window.location.href = 'mail.html';
             } catch (error) {
-                console.error('Sign in error:', error); // Debug
-                errorElement.textContent = error.message;
-                errorElement.style.display = 'block';
+                showError(signinError, error.message);
             }
         });
         
@@ -580,29 +655,26 @@
             const fullname = document.getElementById('fullname').value;
             const birthday = document.getElementById('birthday').value;
             const phone = document.getElementById('phone').value;
-            const email = document.getElementById('signup-email').value;
+            const username = document.getElementById('signup-username').value;
             const password = document.getElementById('signup-password').value;
             const confirmPassword = document.getElementById('confirm-password').value;
             
-            const errorElement = document.getElementById('signup-error');
-            const successElement = document.getElementById('signup-success');
-            
             // Clear previous messages
-            errorElement.style.display = 'none';
-            successElement.style.display = 'none';
+            hideAllMessages();
             
             // Validate inputs
-            if (!fullname || !birthday || !phone || !email || !password || !confirmPassword) {
-                errorElement.textContent = 'Please fill in all fields';
-                errorElement.style.display = 'block';
+            if (!fullname || !birthday || !phone || !username || !password || !confirmPassword) {
+                showError(signupError, 'Please fill in all fields');
                 return;
             }
             
             if (password !== confirmPassword) {
-                errorElement.textContent = 'Passwords do not match!';
-                errorElement.style.display = 'block';
+                showError(signupError, 'Passwords do not match!');
                 return;
             }
+            
+            // Email will be username + @samos.com
+            const email = `${username}@samos.com`;
             
             try {
                 // Create user with Supabase
@@ -615,27 +687,23 @@
                             birthday: birthday,
                             phone: phone,
                             avatar_url: profilePreview.src || null
-                        }
+                        },
+                        emailRedirectTo: window.location.origin + '/auth.html'
                     }
                 });
                 
                 if (error) throw error;
                 
-                console.log('Signup success:', data); // Debug
-                
                 // Show success message
-                successElement.textContent = 'Account created successfully! Please check your email to verify your account.';
-                successElement.style.display = 'block';
+                showSuccess('Account created successfully! Please check your email to verify your account.');
                 
                 // Clear form
                 signupForm.reset();
-                profilePreview.style.display = 'none';
-                if (profileIcon) profileIcon.style.display = 'block';
+                profilePreview.classList.add('hidden');
+                profileIcon.classList.remove('hidden');
                 
             } catch (error) {
-                console.error('Signup error:', error); // Debug
-                errorElement.textContent = error.message;
-                errorElement.style.display = 'block';
+                showError(signupError, error.message);
             }
         });
         
@@ -643,27 +711,26 @@
         document.getElementById('forgot-password').addEventListener('click', async (e) => {
             e.preventDefault();
             const email = document.getElementById('signin-email').value;
-            const errorElement = document.getElementById('signin-error');
             
             if (!email) {
-                errorElement.textContent = 'Please enter your email address first';
-                errorElement.style.display = 'block';
+                showError(signinError, 'Please enter your email address first');
                 return;
             }
             
             try {
-                const { error } = await supabase.auth.resetPasswordForEmail(email, {
-                    redirectTo: window.location.origin + '/auth.html#reset-password',
-                });
+                const { error } = await supabase.auth.resetPasswordForEmail(
+                    email + (email.includes('@') ? '' : '@samos.com'), 
+                    {
+                        redirectTo: window.location.origin + '/auth.html#reset-password',
+                    }
+                );
                 
                 if (error) throw error;
                 
-                errorElement.textContent = 'Password reset instructions sent to your email';
-                errorElement.style.display = 'block';
-                errorElement.style.color = '#38a169';
+                showError(signinError, 'Password reset instructions sent to your email');
+                signinError.style.color = '#38a169';
             } catch (error) {
-                errorElement.textContent = error.message;
-                errorElement.style.display = 'block';
+                showError(signinError, error.message);
             }
         });
         
@@ -676,8 +743,8 @@
         
         // Handle password reset
         if (window.location.hash === '#reset-password') {
-            // Show reset password form (would need to be implemented)
-            alert('Password reset functionality would be implemented here');
+            // This would be where you implement password reset UI
+            alert('Please check your email for password reset instructions');
         }
     </script>
 </body>
